@@ -1,28 +1,37 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { AsyncPaginate } from "react-select-async-paginate";
-import { GEO_API_URL, geoApiOptions } from "../../api";
-import axios from "axios";
+import { geoApiOptions, GEO_API_URL } from "../../api";
 
 const Search = ({ onSearchChange }) => {
   const [search, setSearch] = useState(null);
 
   const loadOptions = (inputValue) => {
-    axios
-      .request(geoApiOptions)
-      .then(function (response) {
-        console.log(response.data);
-      })
-      .catch(function (error) {
-        console.error(error);
+    return fetch(
+      `${GEO_API_URL}/cities?minPopulation=1000000&namePrefix=${inputValue}`,
+      geoApiOptions
+    )
+      .then((response) => response.json())
+      .then((response) => {
+        console.log(response);
+        return {
+          options: response.data.map((city) => {
+            return {
+              value: `${city.latitude} ${city.longitude}`,
+              label: `${city.name}, ${city.countryCode}`,
+            };
+          }),
+        };
       });
   };
+
   const handleOnChange = (searchData) => {
     setSearch(searchData);
     onSearchChange(searchData);
   };
+
   return (
     <AsyncPaginate
-      placeholder="Search for city"
+      placeholder="جستجوی شهر (به زبان انگلیسی)"
       debounceTimeout={600}
       value={search}
       onChange={handleOnChange}
@@ -30,4 +39,5 @@ const Search = ({ onSearchChange }) => {
     />
   );
 };
+
 export default Search;
